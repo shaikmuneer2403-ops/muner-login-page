@@ -1,0 +1,498 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Sign in — Developer Portal</title>
+  <meta name="description" content="Accessible, single-file login page with progressive enhancement, live validation, and password strength meter." />
+  <style>
+    :root{
+      --bg-0:#071024;
+      --bg-1:#08142b;
+      --panel: rgba(255,255,255,0.04);
+      --glass: rgba(255,255,255,0.025);
+      --accent-1: #7c3aed; /* purple */
+      --accent-2: #06b6d4; /* cyan */
+      --accent-grad: linear-gradient(135deg,var(--accent-1),var(--accent-2));
+      --muted: rgba(230,238,248,0.66);
+      --text: #eaf4ff;
+      --danger: #ff6b6b;
+      --success: #34d399;
+      --radius: 14px;
+      --focus-shadow: 0 0 0 4px rgba(124,58,237,0.14);
+      --soft-shadow: 0 10px 30px rgba(2,6,23,0.6);
+      --glass-border: rgba(255,255,255,0.06);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+
+    /* Base */
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      min-height:100%;
+      color:var(--text);
+      background:
+        radial-gradient(800px 400px at 10% 10%, rgba(124,58,237,0.08), transparent 8%),
+        radial-gradient(700px 350px at 90% 90%, rgba(6,182,212,0.06), transparent 8%),
+        linear-gradient(180deg,var(--bg-0),var(--bg-1));
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:28px;
+    }
+
+    /* Layout */
+    main.app{
+      width:100%;
+      max-width:1100px;
+      display:grid;
+      grid-template-columns: 1fr 420px;
+      gap:28px;
+      align-items:stretch;
+      margin:12px;
+    }
+
+    /* Marketing panel */
+    article.panel{
+      border-radius:var(--radius);
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      padding:28px;
+      box-shadow:var(--soft-shadow);
+      display:flex;
+      flex-direction:column;
+      gap:18px;
+      backdrop-filter: blur(8px) saturate(120%);
+      min-height:460px;
+    }
+    .brand{
+      display:flex;
+      gap:14px;
+      align-items:center;
+    }
+    .logo{
+      width:56px;height:56px;border-radius:12px;
+      background:var(--accent-grad);
+      display:grid;place-items:center;color:#071124;font-weight:700;font-size:18px;
+      box-shadow: 0 8px 24px rgba(7,89,133,0.12), inset 0 -6px 12px rgba(255,255,255,0.06);
+    }
+    h1{margin:0;font-size:28px}
+    p.lead{margin:0;color:var(--muted);line-height:1.5}
+    ul.h-list{margin:12px 0 0 18px;color:var(--muted)}
+    ul.h-list li{margin:8px 0;line-height:1.4}
+
+    footer.panel-foot{margin-top:auto;color:var(--muted);font-size:13px}
+
+    /* Card / form */
+    section.card{
+      border-radius:16px;
+      padding:20px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
+      box-shadow:var(--soft-shadow);
+      backdrop-filter: blur(8px) saturate(120%);
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      min-height:420px;
+    }
+    header.card-head{display:flex;justify-content:space-between;align-items:center;gap:10px}
+    header.card-head h2{margin:0;font-size:18px}
+    .muted{color:var(--muted);font-size:13px}
+
+    form{margin-top:8px}
+
+    fieldset{border:0;padding:0;margin:0}
+    legend{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+    .form-grid{display:grid;gap:12px}
+    label{display:block;font-size:13px;margin-bottom:6px;color:var(--muted)}
+    .control{
+      display:flex;align-items:center;gap:8px;
+      background:var(--glass);
+      border-radius:10px;padding:10px;
+      border:1px solid var(--glass-border);
+      box-shadow: inset 0 -6px 12px rgba(255,255,255,0.02);
+    }
+    input[type="email"], input[type="password"]{
+      background:transparent;border:0;color:var(--text);font-size:15px;width:100%;
+      outline:none;padding:6px 2px;
+    }
+    input::placeholder{color:rgba(230,238,248,0.28)}
+
+    /* Toggle button */
+    button.icon-btn{
+      background:transparent;border:0;color:var(--muted);cursor:pointer;padding:6px;border-radius:8px;
+    }
+    button.icon-btn:focus{box-shadow:var(--focus);outline:none}
+
+    /* Strength bar */
+    .strength-wrap{margin-top:8px}
+    .strength-track{height:10px;border-radius:999px;background:linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.015));overflow:hidden}
+    .strength-bar{height:100%;width:6%;transition:width .28s ease,background .28s ease}
+    .strength-label{margin-top:6px;font-size:12px;color:var(--muted)}
+
+    /* Errors and helpers */
+    .help{font-size:13px;color:var(--muted)}
+    .error-text{color:var(--danger);font-size:13px;margin-top:6px}
+    .has-error{border-color: rgba(255,107,107,0.9);box-shadow:0 6px 18px rgba(255,107,107,0.06) !important}
+
+    /* Actions */
+    .actions{display:flex;gap:10px;align-items:center;margin-top:10px}
+    .btn-primary{
+      border:0;padding:11px 14px;border-radius:12px;background:var(--accent-grad);color:#071124;font-weight:700;cursor:pointer;
+      box-shadow: 0 10px 26px rgba(124,58,237,0.12);
+      transition:transform .12s ease,opacity .12s ease;
+    }
+    .btn-primary:disabled{opacity:0.6;cursor:wait;transform:scale(.996)}
+    .btn-ghost{background:transparent;border:1px solid var(--glass-border);color:var(--muted);padding:10px;border-radius:12px}
+
+    .status{
+      margin-top:12px;padding:10px;border-radius:10px;font-size:13px;display:none;
+    }
+    .status.success{background: linear-gradient(90deg, rgba(52,211,153,0.06), rgba(52,211,153,0.02));color:var(--success);display:block}
+    .status.error{background: linear-gradient(90deg, rgba(255,107,107,0.06), rgba(255,107,107,0.02));color:var(--danger);display:block}
+
+    /* Footer note */
+    .form-foot{margin-top:16px;display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--muted)}
+
+    /* Utility */
+    :focus-visible{outline:none;box-shadow:var(--focus)}
+
+    /* Responsive */
+    @media (max-width:980px){
+      main.app{grid-template-columns:1fr;max-width:760px}
+      article.panel{order:2}
+      section.card{order:1}
+    }
+
+    /* Reduced motion */
+    @media (prefers-reduced-motion: reduce){
+      *{transition:none!important}
+    }
+  </style>
+</head>
+<body>
+  <main class="app" role="main" aria-labelledby="main-heading">
+    <article class="panel" aria-hidden="false">
+      <div class="brand" aria-hidden="false">
+        <div class="logo" aria-hidden="true">DEV</div>
+        <div>
+          <h1 id="main-heading">Developer Portal</h1>
+          <p class="lead">Secure access for developers. This page works without JavaScript — enhanced when JS is available.</p>
+        </div>
+      </div>
+
+      <p class="lead" style="margin-top:6px">Sign in to view your projects, manage tasks, and access learning resources. Designed with accessibility and progressive enhancement.</p>
+
+      <ul class="h-list" aria-hidden="true">
+        <li>Semantic, accessible form markup</li>
+        <li>Live validation, password strength meter, and rate-limited submit</li>
+        <li>No-JS fallback: plain POST to /login</li>
+      </ul>
+
+      <footer class="panel-foot">© <span id="yr"></span> Developer Portal</footer>
+    </article>
+
+    <section class="card" aria-labelledby="signin-title" aria-describedby="signin-desc">
+      <header class="card-head">
+        <div>
+          <h2 id="signin-title">Sign in</h2>
+          <p id="signin-desc" class="muted">Enter your account credentials to continue.</p>
+        </div>
+        <div class="muted">Secure • Private</div>
+      </header>
+
+      <!-- Progressive enhancement: simple POST works when JS is disabled -->
+      <form id="loginForm" method="POST" action="/login" autocomplete="on" novalidate>
+        <fieldset>
+          <legend class="sr-only">Login form</legend>
+
+          <div class="form-grid" role="group" aria-labelledby="signin-title">
+
+            <!-- Email -->
+            <div>
+              <label for="email">Email</label>
+              <div id="emailWrap" class="control" role="presentation">
+                <input id="email" name="email" type="email" inputmode="email" placeholder="you@domain.com" required aria-required="true" aria-describedby="emailHelp emailError" />
+              </div>
+              <div id="emailHelp" class="help">We'll never share your email.</div>
+              <div id="emailError" class="error-text" role="alert" aria-live="polite"></div>
+            </div>
+
+            <!-- Password -->
+            <div>
+              <label for="password">Password</label>
+              <div id="pwdWrap" class="control" role="presentation">
+                <input id="password" name="password" type="password" placeholder="At least 6 characters" required aria-required="true" aria-describedby="pwdHelp pwdStrengthLabel pwdError" minlength="6" />
+                <button type="button" id="togglePwd" class="icon-btn" aria-pressed="false" aria-label="Show password">Show</button>
+              </div>
+              <div id="pwdHelp" class="help">Use a mix of letters, numbers and symbols.</div>
+
+              <div class="strength-wrap" aria-hidden="false">
+                <div class="strength-track" aria-hidden="true">
+                  <div id="strengthBar" class="strength-bar" style="width:6%;background:linear-gradient(90deg,#f97316,#f43f5e)"></div>
+                </div>
+                <div id="pwdStrengthLabel" class="strength-label help" aria-live="polite">Strength: Too short</div>
+              </div>
+
+              <div id="pwdError" class="error-text" role="alert" aria-live="polite"></div>
+            </div>
+
+            <!-- Remember & actions -->
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+              <label style="display:flex;align-items:center;gap:8px;">
+                <input id="remember" name="remember" type="checkbox" /> <span class="help">Remember me</span>
+              </label>
+
+              <a href="#" class="help" onclick="event.preventDefault()">Forgot?</a>
+            </div>
+
+            <div class="actions">
+              <button type="submit" id="submitBtn" class="btn-primary" aria-live="polite">Sign in</button>
+              <button type="button" id="demoBtn" class="btn-ghost">Demo</button>
+              <div style="flex:1"></div>
+              <div id="spinner" aria-hidden="true" style="display:none" class="help">Processing…</div>
+            </div>
+
+            <!-- Status messages -->
+            <div id="statusSuccess" class="status success" role="status" aria-live="polite" hidden>Signed in successfully.</div>
+            <div id="statusError" class="status error" role="alert" aria-live="assertive" hidden>Invalid credentials. Try again.</div>
+
+          </div>
+        </fieldset>
+      </form>
+
+      <footer class="form-foot">
+        <div class="muted">No JavaScript? The form will POST to /login.</div>
+        <div><a href="#" class="muted" onclick="event.preventDefault()">Privacy</a></div>
+      </footer>
+    </section>
+  </main>
+
+  <noscript>
+    <style>
+      .strength-wrap{display:none}
+    </style>
+    <div style="position:fixed;left:12px;bottom:12px;background:#111827;color:#fff;padding:10px;border-radius:8px;font-size:13px;z-index:9999">
+      JavaScript is disabled — this form will submit via standard POST.
+    </div>
+  </noscript>
+
+  <script>
+    (function(){
+      // small DOM helpers
+      const $ = id => document.getElementById(id);
+      const yr = new Date().getFullYear(); document.getElementById('yr').textContent = yr;
+
+      // Elements
+      const form = $('loginForm');
+      const email = $('email');
+      const pwd = $('password');
+      const toggle = $('togglePwd');
+      const strengthBar = $('strengthBar');
+      const strengthLabel = $('pwdStrengthLabel');
+      const emailError = $('emailError');
+      const pwdError = $('pwdError');
+      const submitBtn = $('submitBtn');
+      const demoBtn = $('demoBtn');
+      const spinner = $('spinner');
+      const statusSuccess = $('statusSuccess');
+      const statusError = $('statusError');
+
+      // Debounce
+      function debounce(fn, delay=300){
+        let t;
+        return function(...args){
+          clearTimeout(t);
+          t = setTimeout(()=> fn.apply(this,args), delay);
+        };
+      }
+
+      // Simple validators
+      function emailValid(v){
+        if(!v) return "Email is required";
+        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return re.test(v) ? "" : "Enter a valid email";
+      }
+      function passwordValid(v){
+        if(!v) return "Password is required";
+        if(v.length < 6) return "Password must be at least 6 characters";
+        return "";
+      }
+
+      // Strength estimation (0-5)
+      function estimateStrength(p){
+        if(!p) return {score:0,label:'Too short',percent:6,color:'#f97316'};
+        let score = 0;
+        if(p.length >= 6) score++;
+        if(p.length >= 10) score++;
+        if(/[a-z]/.test(p) && /[A-Z]/.test(p)) score++;
+        if(/\d/.test(p)) score++;
+        if(/[^A-Za-z0-9]/.test(p)) score++;
+        score = Math.max(0, Math.min(5, score));
+        const map = [
+          {label:'Too short',percent:6,color:'#f97316'},
+          {label:'Weak',percent:22,color:'#fb923c'},
+          {label:'Fair',percent:44,color:'#f59e0b'},
+          {label:'Good',percent:66,color:'#60a5fa'},
+          {label:'Strong',percent:88,color:'#7c3aed'},
+          {label:'Excellent',percent:100,color:'#34d399'}
+        ];
+        return map[score];
+      }
+
+      // update UI for strength
+      function updateStrength(p){
+        const s = estimateStrength(p);
+        strengthBar.style.width = s.percent + '%';
+        strengthBar.style.background = 'linear-gradient(90deg,' + s.color + ', #7c3aed)';
+        strengthLabel.textContent = 'Strength: ' + s.label;
+      }
+
+      // Live validation handlers (debounced)
+      const liveEmail = debounce(()=> {
+        const msg = emailValid(email.value.trim());
+        emailError.textContent = msg;
+        email.setAttribute('aria-invalid', msg ? 'true' : 'false');
+        if(msg) email.closest('.control')?.classList?.add('has-error'); else email.closest('.control')?.classList?.remove('has-error');
+      }, 260);
+
+      const livePwd = debounce(()=> {
+        const v = pwd.value;
+        const msg = passwordValid(v);
+        pwdError.textContent = msg;
+        pwd.setAttribute('aria-invalid', msg ? 'true' : 'false');
+        if(msg) pwd.closest('.control')?.classList?.add('has-error'); else pwd.closest('.control')?.classList?.remove('has-error');
+        updateStrength(v);
+      }, 200);
+
+      email.addEventListener('input', liveEmail);
+      pwd.addEventListener('input', livePwd);
+      email.addEventListener('blur', liveEmail);
+      pwd.addEventListener('blur', livePwd);
+
+      // Show/hide password
+      toggle.addEventListener('click', function(){
+        const isHidden = pwd.type === 'password';
+        pwd.type = isHidden ? 'text' : 'password';
+        toggle.setAttribute('aria-pressed', String(isHidden));
+        toggle.textContent = isHidden ? 'Hide' : 'Show';
+        pwd.focus({preventScroll:true});
+      });
+
+      // Demo filler
+      demoBtn.addEventListener('click', function(){
+        email.value = 'demo@dev.local';
+        pwd.value = 'DemoPassword123!';
+        liveEmail();
+        livePwd();
+      });
+
+      // Rate-limit / anti-spam
+      let lastSubmit = 0;
+      const RATE_MS = 1700;
+
+      // Optional: hash with Web Crypto
+      async function sha256Hex(text){
+        if(!window.crypto || !crypto.subtle) return null;
+        const enc = new TextEncoder();
+        const data = enc.encode(text);
+        const hash = await crypto.subtle.digest('SHA-256', data);
+        const u8 = new Uint8Array(hash);
+        return Array.from(u8).map(b => b.toString(16).padStart(2,'0')).join('');
+      }
+
+      // Fake API call simulation
+      async function fakeApi({email, passwordHash, rawPassword}){
+        await new Promise(r => setTimeout(r, 600 + Math.random()*600));
+        // simple rule: if email contains 'dev' or password >=10 chars then success
+        if(/dev/i.test(email) || (rawPassword && rawPassword.length >= 10)) {
+          return {ok:true, user:{email}, token:'fake.token'};
+        }
+        const e = new Error('Invalid credentials');
+        e.status = 401;
+        throw e;
+      }
+
+      // Show status helpers
+      function showSuccess(msg){
+        statusError.hidden = true;
+        statusSuccess.hidden = false;
+        statusSuccess.textContent = msg;
+        statusSuccess.focus?.();
+      }
+      function showError(msg){
+        statusSuccess.hidden = true;
+        statusError.hidden = false;
+        statusError.textContent = msg;
+        statusError.focus?.();
+      }
+
+      // Submit handler
+      form.addEventListener('submit', async function(ev){
+        // If JS present, intercept and perform enhanced behavior
+        ev.preventDefault();
+        const now = Date.now();
+        if(now - lastSubmit < RATE_MS) return;
+        lastSubmit = now;
+        submitBtn.disabled = true;
+        spinner.style.display = 'block';
+        spinner.setAttribute('aria-hidden','false');
+
+        // Gather data
+        const em = email.value.trim();
+        const pw = pwd.value;
+
+        // Validate
+        const emMsg = emailValid(em);
+        const pwMsg = passwordValid(pw);
+        if(emMsg){ emailError.textContent = emMsg; showError(emMsg); submitBtn.disabled=false; spinner.style.display='none'; return; }
+        if(pwMsg){ pwdError.textContent = pwMsg; showError(pwMsg); submitBtn.disabled=false; spinner.style.display='none'; return; }
+
+        // Try hashing (optional)
+        let hashed = null;
+        try{ hashed = await sha256Hex(pw); }catch(e){ hashed = null; }
+
+        // Rate-limit UI: small delay to prevent double submits
+        try{
+          const res = await fakeApi({email: em, passwordHash: hashed, rawPassword: pw});
+          if(res && res.ok){
+            showSuccess('Signed in successfully. Redirecting...');
+            // Simulate redirect / session setup
+            setTimeout(()=> {
+              submitBtn.disabled = false;
+              spinner.style.display = 'none';
+              // In production, redirect: location.href = '/dashboard';
+            }, 800);
+          } else {
+            throw new Error('Login failed');
+          }
+        } catch(err){
+          console.error('auth', err);
+          showError(err.message || 'Login failed');
+          submitBtn.disabled = false;
+          spinner.style.display = 'none';
+        } finally {
+          // ensure submitBtn re-enabled after RATE_MS
+          setTimeout(()=> { submitBtn.disabled = false; }, RATE_MS);
+        }
+      });
+
+      // Keyboard accessibility for toggle (Enter/Space)
+      toggle.addEventListener('keydown', function(e){
+        if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle.click(); }
+      });
+
+      // Make status regions focusable for assistive tech when shown
+      [statusSuccess, statusError].forEach(s => {
+        s.setAttribute('tabindex','-1');
+      });
+
+      // Initialize strength for empty password
+      updateStrength('');
+    })();
+  </script>
+</body>
+</html>
